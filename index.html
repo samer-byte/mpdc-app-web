@@ -5,7 +5,24 @@
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>More Parties DC</title>
-    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+
+    <!-- iPhone visitors get Apple's own banner straight to the App Store listing (live 2026-09-22). -->
+    <meta name="apple-itunes-app" content="app-id=6812600981" />
+
+    <!-- The page was white until the 800 KB bundle parsed (~2 s on mobile). Paint black first. -->
+    <style>html, body, #root { background: #0A0A0B; }</style>
+    <meta name="theme-color" content="#0A0A0B" />
+    <meta name="color-scheme" content="dark" />
+
+    <!-- A shared link previewed as a blank card; it now carries the name, the pitch and an image. -->
+    <meta name="description" content="The More Parties DC member app: see every night at Rosebar and SAX, pick your exact table on the floor map with its minimum, and send a request. 21+." />
+    <meta property="og:title" content="More Parties DC — book your table" />
+    <meta property="og:description" content="See every night, pick your exact table on the floor map, and request it from your phone. 21+." />
+    <meta property="og:image" content="https://samer-byte.github.io/mpdc-media/v1/hero-mobile.webp" />
+    <meta property="og:url" content="https://app.morepartiesdc.com" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
     <style id="expo-reset">
       /* These styles make the body full-height */
       html,
@@ -23,14 +40,14 @@
         flex: 1;
       }
     </style>
+    <link rel="icon" href="/favicon.ico" />
   <link rel="icon" href="/favicon.ico" /></head>
 
   <body>
-    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
     <noscript>
-      You need to enable JavaScript to run this app.
+      You need to enable JavaScript to run this app. Or text us on Instagram @morepartiesdc and we
+      will book your table.
     </noscript>
-    <!-- The root element for your Expo app. -->
     <div id="root"></div>
   <script src="/_expo/static/js/web/index-5c3836aef1b27e9e31be387367bcb22d.js" defer></script>
 </body>
