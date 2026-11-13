@@ -1,0 +1,17 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>More Parties DC · Table payment</title>
+<style>body{font-family:-apple-system,Helvetica,Arial,sans-serif;background:#0A0A0B;color:#eee;max-width:640px;margin:0 auto;padding:48px 20px;line-height:1.55}h1{font-size:26px;margin:0 0 12px}a{color:#E52640}.fine{color:#999;font-size:14px;margin-top:32px}#no{display:none}</style></head><body>
+<!-- Stripe success/cancel return for table links sent by the phone line (backend/63_phone_pay_return.sql). Static: no sign-in, no Squarespace. -->
+<div id="yes">
+<h1>Payment received. Your table is booked.</h1>
+<p>It goes straight on our chart. If anything changes, our table manager, Dave, will text you.</p>
+<p>Please arrive by 12:30 AM or the table may be released. A service fee and tax apply on the night.</p>
+<p>Questions: text Dave at <a href="sms:+12028127900">(202) 812-7900</a>.</p>
+</div>
+<div id="no">
+<h1>Payment not completed.</h1>
+<p>Nothing was charged. Your table stays held for 35 minutes from when we sent the link, so you can still use the link in your email.</p>
+<p>Need a hand? Call the table line at <a href="tel:+17712136543">(771) 213-6543</a> or text Dave at <a href="sms:+12028127900">(202) 812-7900</a>.</p>
+</div>
+<p class="fine">More Parties DC · Washington, DC · 21+ · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
+<script>if (/[?&]paid=0(&|$)/.test(location.search)) { document.getElementById('yes').style.display = 'none'; document.getElementById('no').style.display = 'block'; }</script>
+</body></html>
