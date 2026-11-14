@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://coekikwjxjkgkxecnokg.supabase.co; form-action 'none'; base-uri 'none'">
+<title>Table texts — More Parties DC</title>
+<meta name="description" content="Sign up for table booking texts from More Parties DC, or text our table line at (771) 213-6543. 21+.">
+<style>
+:root{--bg:#0A0A0B;--fg:#fff;--mut:#9a9aa2;--red:#E5243B;--line:#26262b;--card:#121215}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,system-ui,"Segoe UI",sans-serif;padding:32px 16px 80px}
+main{max-width:560px;margin:0 auto}
+h1{font-size:28px;line-height:1.2;margin:0 0 8px}h2{font-size:18px;margin:0 0 10px}
+p{color:#e6e6ea;margin:0 0 14px}.sub{color:var(--mut);font-size:15px}.fine{color:var(--mut);font-size:13.5px;line-height:1.55}
+a{color:var(--red)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin:22px 0}
+.btn{display:block;width:100%;text-align:center;background:var(--red);color:#fff;border:0;border-radius:10px;padding:14px 16px;font:600 16px/1.2 inherit;font-family:inherit;text-decoration:none;cursor:pointer}
+.btn[disabled]{opacity:.5;cursor:default}
+label.f{display:block;font-size:14px;color:var(--mut);margin:0 0 6px}
+input[type=text],input[type=tel],select{width:100%;background:#0d0d10;color:#fff;border:1px solid #33333a;border-radius:10px;padding:12px;font:16px inherit;font-family:inherit;margin:0 0 14px}
+.dob{display:grid;grid-template-columns:1.3fr 1fr 1.2fr;gap:8px}
+.consent{display:flex;gap:12px;align-items:flex-start;margin:4px 0 16px;font-size:14.5px;line-height:1.55;color:#e6e6ea}
+.consent input{width:22px;height:22px;margin:2px 0 0;flex:0 0 22px;accent-color:var(--red)}
+.msg{font-size:15px;margin:12px 0 0;min-height:1em}.msg.err{color:#ff8a96}.msg.ok{color:#7ee2a8}
+.mark{font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:13px;color:var(--red);margin:0 0 18px}
+[hidden]{display:none!important}
+footer{margin-top:34px;color:var(--mut);font-size:13.5px}
+</style></head><body><main>
+<p class="mark">More Parties DC</p>
+
+<section id="gate" class="card" aria-labelledby="gate-h">
+  <h1 id="gate-h">21+ only</h1>
+  <p class="sub">Our events are 21+. Enter your date of birth to continue. It is checked on this device and never stored or sent.</p>
+  <form id="gate-form" novalidate>
+    <div class="dob">
+      <div><label class="f" for="m">Month</label><select id="m" required></select></div>
+      <div><label class="f" for="d">Day</label><select id="d" required></select></div>
+      <div><label class="f" for="y">Year</label><select id="y" required></select></div>
+    </div>
+    <button class="btn" type="submit">Continue</button>
+    <p id="gate-msg" class="msg err" role="alert" aria-live="assertive"></p>
+  </form>
+</section>
+
+<div id="content" hidden>
+  <h1>Table texts from More Parties DC</h1>
+  <p class="sub">Our table line, <strong>(771) 213-6543</strong>, books tables for our weekly nights in Washington, DC
+  (Rosebar Fridays, SAX Saturdays, Rosebar Sundays). By text we send only booking messages: open tables for the night you ask
+  about, a payment link, your booking confirmation and arrival details on the night. No marketing.</p>
+
+  <section class="card" aria-labelledby="t1">
+    <h2 id="t1">Text us</h2>
+    <p>Text the table line to ask about a table. We reply by text.</p>
+    <a class="btn" id="sms-btn" href="sms:+17712136543">Text (771) 213-6543</a>
+    <p class="fine" style="margin-top:12px">By texting (771) 213-6543 you agree to receive text replies about your table
+    from More Parties DC, including automated texts. Message and data rates may apply. Message frequency varies.
+    Reply STOP to opt out or HELP for help. Consent is not a condition of purchase.
+    <a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms</a></p>
+  </section>
+
+  <section class="card" aria-labelledby="t2">
+    <h2 id="t2">Or sign up for table texts</h2>
+    <form id="optin" novalidate>
+      <label class="f" for="fn">First name (optional)</label>
+      <input id="fn" type="text" autocomplete="given-name" maxlength="60">
+      <label class="f" for="ph">Mobile number</label>
+      <input id="ph" type="tel" autocomplete="tel-national" inputmode="tel" placeholder="(202) 555-0123" required>
+      <div class="consent">
+        <input id="ok" type="checkbox">
+        <label for="ok" id="consent-text">I agree to receive table booking text messages from More Parties DC at this number,
+        including automated texts. Message and data rates may apply. Message frequency varies. Reply STOP to opt out or HELP
+        for help. Consent is not a condition of purchase. <a href="/privacy.html">Privacy Policy</a> ·
+        <a href="/terms.html">Terms</a></label>
+      </div>
+      <button class="btn" id="go" type="submit">Sign up for table texts</button>
+      <p id="msg" class="msg" role="status" aria-live="polite"></p>
+    </form>
+    <p class="fine" style="margin-top:10px">You do not need to sign up for texts to book a table. Your number is used only for
+    More Parties DC table texts and is never sold or shared for anyone else's marketing.</p>
+  </section>
+</div>
+
+<footer>MorePartiesDC LLC · Washington, DC · Help: (771) 213-6543 or
+<a href="mailto:morepartiesdc@gmail.com">morepartiesdc@gmail.com</a> ·
+<a href="/privacy.html">Privacy Policy</a> · <a href="/terms.html">Terms</a></footer>
+</main>
+<script src="/texts.js"></script>
+</body></html>
