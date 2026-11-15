@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://coekikwjxjkgkxecnokg.supabase.co; form-action 'none'; base-uri 'none'">
+<title>Pay for your table · More Parties DC</title>
+<meta name="description" content="Secure card payment to hold your table with More Parties DC. The link is good for 35 minutes. 21+.">
+<meta property="og:title" content="Pay for your table · More Parties DC">
+<meta property="og:description" content="Secure card payment to hold your table. The link is good for 35 minutes.">
+<meta property="og:image" content="https://app.morepartiesdc.com/og.png">
+<meta property="og:url" content="https://app.morepartiesdc.com/p/">
+<style>
+body{font-family:-apple-system,system-ui,Helvetica,Arial,sans-serif;background:#0A0A0B;color:#eee;max-width:640px;margin:0 auto;padding:48px 20px;line-height:1.55}
+h1{font-size:26px;line-height:1.25;margin:0 0 12px}p{margin:0 0 14px;color:#e6e6ea}a{color:#E52640}
+.btn{display:inline-block;background:#E5243B;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:12px;margin:6px 0 18px}
+.fine{color:#999;font-size:14px;margin-top:32px}[hidden]{display:none}
+</style></head><body>
+<!-- The short pay link texted by the table line (backend/77_text_pay_link.sql). It looks the code up and forwards to
+     the Stripe pay page. Static: no sign-in. Script: /p/p.js, built by backend/build_pay_js.js. -->
+<div id="wait">
+<h1>Opening your secure payment page.</h1>
+<p>One moment. You pay by card on Stripe, and your table is held for 35 minutes from when we texted you.</p>
+<p><a id="go" class="btn" href="#" hidden>Continue to payment</a></p>
+</div>
+<div id="stop" hidden>
+<h1 id="stop-title">This link can't be opened.</h1>
+<p id="stop-text"></p>
+<p>Need a hand? Text or call the table line at <a href="sms:+17712136543">(771) 213-6543</a>, or text our table manager, Dave, at <a href="sms:+12028127900">(202) 812-7900</a>.</p>
+</div>
+<noscript><p>This page needs JavaScript to open your payment page. Or text the table line at (771) 213-6543 and we will help.</p></noscript>
+<p class="fine">More Parties DC · Washington, DC · 21+ · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a></p>
+<script src="/p/p.js"></script>
+</body></html>
