@@ -20,18 +20,19 @@ import { MindARThree } from './vendor/mindar-image-three.prod.js';
 
 const S = window.__ar = { started: 0, found: 0, foundAt: null, lostCount: 0, framesTracked: 0, frames: 0, t0: 0, target: null };
 const Q = new URLSearchParams(location.search);
-// Target sets. ?set=tattoo loads the tattoo set (a test set: not on the live link until it works on skin).
-// One entry per image in the set's .mind file, in order. aspect = target image h/w; art = share of the target's width the
-// logo fills; plate = the colour that covers the print (null = no cover: on skin the print stays and the logo lifts off it);
-// tex = the logo that lifts off (stars removed: they fly as 3D).
-const SETS = {
-  logo: { mind: './targets/mpdc_logo_2.mind', targets: [
-    { name: 'logo on black (screens, flyers, banners)', aspect: 647 / 1256, art: 1000 / 1256, plate: 0x000000, tex: './targets/mpdc_logo_nostars.png' },
-    { name: 'red logo on white (the foam cup)', aspect: 748 / 1512, art: 1256 / 1512, plate: 0xffffff, tex: './targets/mpdc_logo_allred_nostars.png' } ] },
-  tattoo: { mind: './targets/mpdc_tattoo_3.mind', targets: ['light', 'medium', 'deep'].map(n => (
-    { name: 'tattoo on ' + n + ' skin', aspect: 748 / 1512, art: 1256 / 1512, plate: null, tex: './targets/mpdc_logo_nostars.png' })) },
-};
-const SET = SETS[Q.get('set')] || SETS.logo, MIND = Q.get('target') || SET.mind, TARGETS = SET.targets;
+// One link for everything (11/14, after Juice's phone test: "can we not just do one that is able to pick up on both").
+// One entry per image in mpdc_logo_5.mind, in order. aspect = target image h/w; art = share of the target's width the logo
+// fills; plate = a colour that covers the print, or null (the print stays and the logo lifts off it: the look that
+// worked better on the phone, so it is the default for every surface); tex = the logo that lifts off.
+const T_BLACK = 647 / 1256, T_WIDE = 748 / 1512;
+const TARGETS = [
+  { name: 'logo on black (screens, flyers, banners)', aspect: T_BLACK, art: 1000 / 1256, plate: null, tex: './targets/mpdc_logo_nostars.png' },
+  { name: 'red logo on white (the foam cup)', aspect: T_WIDE, art: 1256 / 1512, plate: null, tex: './targets/mpdc_logo_allred_nostars.png' },
+  { name: 'tattoo on light skin', aspect: T_WIDE, art: 1256 / 1512, plate: null, tex: './targets/mpdc_logo_nostars.png' },
+  { name: 'tattoo on medium skin', aspect: T_WIDE, art: 1256 / 1512, plate: null, tex: './targets/mpdc_logo_nostars.png' },
+  { name: 'tattoo on deep skin', aspect: T_WIDE, art: 1256 / 1512, plate: null, tex: './targets/mpdc_logo_nostars.png' },
+];
+const MIND = Q.get('target') || './targets/mpdc_logo_5.mind';   // ?set=tattoo (the old second link) lands here too
 // star centres on the print, as fractions of the logo art box (measured from the logo file)
 const STAR_UV = [[0.488, -0.391], [0.718, -0.156], [0.946, -0.093]];
 
