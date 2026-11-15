@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>More Parties DC · Live Logo</title>
+<style>
+ html,body{margin:0;height:100%;background:#000;overflow:hidden;font-family:-apple-system,Helvetica,Arial,sans-serif}
+ #ar{position:fixed;inset:0}
+ #hint{position:fixed;left:0;right:0;bottom:max(24px,env(safe-area-inset-bottom));text-align:center;color:#fff;font-size:14px;letter-spacing:.12em;text-transform:uppercase;text-shadow:0 1px 4px #000;pointer-events:none;transition:opacity .4s}
+ #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;background:#000;color:#fff;z-index:9}
+ #start img{width:70vw;max-width:420px}
+ #start button{font:600 15px/1 -apple-system,Helvetica,Arial;letter-spacing:.14em;text-transform:uppercase;background:#e81a39;color:#fff;border:0;border-radius:999px;padding:16px 28px}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
+</head><body>
+<div id="start"><img src="./targets/mpdc_logo_transparent_trim.png" alt="More Parties DC"><button id="go">Point at the logo</button></div>
+<div id="ar"></div><div id="hint">Point your camera at the More Parties DC logo</div>
+<script type="module">
+import * as THREE from 'three';
+import { MindARThree } from './vendor/mindar-image-three.prod.js';
+
+const S = window.__ar = { started: 0, found: 0, foundAt: null, lostCount: 0, framesTracked: 0, frames: 0, t0: 0, target: null };
+const Q = new URLSearchParams(location.search);
+const MIND = Q.get('target') || './targets/mpdc_logo_2.mind';
+// One entry per image in the .mind file, in order. aspect = target image h/w; art = share of the target's width the logo
+// fills; plate = the colour that covers the print; tex = the logo that lifts off (stars removed: they fly as 3D).
+const TARGETS = [
+  { name: 'logo on black (screens, flyers, banners)', aspect: 647 / 1256, art: 1000 / 1256, plate: 0x000000, tex: './targets/mpdc_logo_nostars.png' },
+  { name: 'red logo on white (the foam cup)', aspect: 748 / 1512, art: 1256 / 1512, plate: 0xffffff, tex: './targets/mpdc_logo_allred_nostars.png' },
+];
+// star centres on the print, as fractions of the logo art box (measured from the logo file)
+const STAR_UV = [[0.488, -0.391], [0.718, -0.156], [0.946, -0.093]];
+
+async function start() {
+  document.getElementById('start').remove();
+  const mind = new MindARThree({ container: document.getElementById('ar'), imageTargetSrc: MIND, maxTrack: 1,
+    uiScanning: 'no', uiLoading: 'no', filterMinCF: 0.0001, filterBeta: 0.001, warmupTolerance: 3, missTolerance: 8 });
+  const { renderer, scene, camera } = mind;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  scene.add(new THREE.AmbientLight(0xffffff, 1.2)); const key = new THREE.DirectionalLight(0xffffff, 2.2); key.position.set(.5, .8, 1); scene.add(key);
+  const clock = new THREE.Clock(), hint = document.getElementById('hint');
+
+  const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+    const r = g.createRadialGradient(64,64,0,64,64,64); r.addColorStop(0,'rgba(232,26,57,0.9)'); r.addColorStop(1,'rgba(232,26,57,0)');
+    g.fillStyle = r; g.fillRect(0,0,128,128); return new THREE.CanvasTexture(c); })();
+  const starShape = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = Math.PI/2 + i*Math.PI/5, r = i%2 ? 0.4 : 1; const x = Math.cos(a)*r, y = Math.sin(a)*r; i ? starShape.lineTo(x,y) : starShape.moveTo(x,y); }
+  const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.25, bevelEnabled: true, bevelThickness: .08, bevelSize: .06, bevelSegments: 2 }); starGeo.center();
+  const starMat = new THREE.MeshStandardMaterial({ color: 0xe81a39, emissive: 0x5a0010, metalness: .35, roughness: .3 });
+
+  const live = await Promise.all(TARGETS.map(async (cfg, index) => {
+    const anchor = mind.addAnchor(index), root = new THREE.Group(); anchor.group.add(root);
+    const tex = await new THREE.TextureLoader().loadAsync(cfg.tex); tex.colorSpace = THREE.SRGBColorSpace;
+    const lw = cfg.art, lh = lw * tex.image.height / tex.image.width, onWhite = cfg.plate === 0xffffff;
+    // 0) a plate in the print's own background colour covers the printed logo, so the live one lifts off a clean surface
+    const plate = new THREE.Mesh(new THREE.PlaneGeometry(onWhite ? lw * 1.06 : 1.02, onWhite ? lh * 1.3 : cfg.aspect * 1.04), new THREE.MeshBasicMaterial({ color: cfg.plate, transparent: true, opacity: 0, depthWrite: false }));
+    root.add(plate);
+    // 1) the logo lifts off the print and rides a wave, with a light sweep
+    const U = { uTex: { value: tex }, uT: { value: 0 }, uLift: { value: 0 }, uGlow: { value: 0 } };
+    const logo = new THREE.Mesh(new THREE.PlaneGeometry(lw, lh, 64, 16), new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false,
+      vertexShader: `uniform float uT,uLift; varying vec2 vUv; void main(){ vUv=uv; vec3 p=position;
+        p.z += uLift*(0.06 + 0.035*sin(uT*3.0 - uv.x*7.0)); p.y += uLift*0.012*sin(uT*2.0 - uv.x*5.0);
+        gl_Position = projectionMatrix*modelViewMatrix*vec4(p,1.0); }`,
+      fragmentShader: `uniform sampler2D uTex; uniform float uGlow,uT; varying vec2 vUv; void main(){
+        vec4 c = texture2D(uTex, vUv); float sweep = smoothstep(0.08,0.0,abs(vUv.x - fract(uT*0.35)*1.4 + 0.2));
+        c.rgb += (uGlow*0.25 + sweep*0.55) * c.a; gl_FragColor = c; }` }));
+    root.add(logo);
+    // 2) soft red glow behind the logo (additive on dark prints; a faint tint on the white cup)
+    const glow = new THREE.Mesh(new THREE.PlaneGeometry(lw * 1.25, lh * 1.9), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, blending: onWhite ? THREE.NormalBlending : THREE.AdditiveBlending, depthWrite: false, opacity: 0 }));
+    glow.position.z = 0.01; root.add(glow);
+    // 3) the three stars break free, spin and float
+    const stars = STAR_UV.map(([u, v]) => { const m = new THREE.Mesh(starGeo, starMat), x = (u - .5) * lw, y = v * lh; m.scale.setScalar(0.038 * lw / 0.8); m.position.set(x, y, 0.02); root.add(m); return { m, x, y }; });
+    // 4) confetti burst on every find (red + white on dark, red + deep red on the white cup)
+    const N = 260, pos = new Float32Array(N*3), vel = [], col = new Float32Array(N*3);
+    for (let i = 0; i < N; i++) { const red = Math.random() < .6; col.set(red ? [0.91,0.1,0.22] : (onWhite ? [0.55,0.02,0.1] : [1,1,1]), i*3); vel.push(new THREE.Vector3()); }
+    const conf = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(pos,3)).setAttribute('color', new THREE.BufferAttribute(col,3)),
+      new THREE.PointsMaterial({ size: 0.018, vertexColors: true, transparent: true, depthWrite: false }));
+    root.add(conf);
+    const st = { visible: false, shownAt: 0, burstAt: -9 };
+    const burst = t => { st.burstAt = t; for (let i = 0; i < N; i++) { pos.set([(Math.random()-.5)*lw*.8, (Math.random()-.5)*lh*.4, .05], i*3); vel[i].set((Math.random()-.5)*.9, Math.random()*.9+.2, Math.random()*.8+.3); } };
+    anchor.onTargetFound = () => { st.visible = true; S.found++; S.target = index; if (S.foundAt === null) S.foundAt = performance.now() - S.t0; const t = clock.getElapsedTime(); st.shownAt = t; burst(t); hint.style.opacity = 0; };
+    anchor.onTargetLost = () => { st.visible = false; S.lostCount++; hint.style.opacity = 1; };
+    return { st, frame(t) {
+      const k = Math.min(1, (t - st.shownAt) / 0.8), e = 1 - Math.pow(1 - k, 3), v = st.visible;
+      U.uT.value = t; U.uLift.value = v ? e : 0; U.uGlow.value = .5 + .5*Math.sin(t*4);
+      glow.material.opacity = v ? e * (onWhite ? .22 : .55 + .2*Math.sin(t*4)) : 0;
+      plate.material.opacity = v ? Math.min(1, k * 2.5) * 0.96 : 0;
+      stars.forEach((s, i) => { const lift = e * (0.12 + 0.05*Math.sin(t*1.6 + i*2));
+        s.m.position.set(s.x + e*0.03*Math.sin(t + i), s.y + lift, 0.03 + e*(0.15 + i*0.04)); s.m.rotation.y = t*(1.5 + i*.4); s.m.rotation.z = Math.sin(t+i)*.3; });
+      const dt = t - st.burstAt; conf.visible = v && dt < 3; conf.material.opacity = Math.max(0, 1 - dt/3);
+      if (conf.visible) { for (let i = 0; i < N; i++) { const w = vel[i]; pos[i*3] += w.x*.016; pos[i*3+1] += (w.y - dt*.9)*.016; pos[i*3+2] += w.z*.016; } conf.geometry.attributes.position.needsUpdate = true; }
+    } };
+  }));
+
+  S.t0 = performance.now();
+  try { await mind.start(); } catch (e) { hint.textContent = 'Camera is blocked. Allow camera access for this page, then reload.'; hint.style.opacity = 1; S.error = String(e); return; }
+  S.started = 1;
+  renderer.setAnimationLoop(() => { const t = clock.getElapsedTime(); S.frames++; if (live.some(l => l.st.visible)) S.framesTracked++; for (const l of live) l.frame(t); renderer.render(scene, camera); });
+}
+document.getElementById('go').onclick = start;
+if (Q.has('autostart')) start();
+</script>
+</body></html>
