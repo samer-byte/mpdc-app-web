@@ -1,0 +1,5 @@
+jsQR 1.4.0 (https://github.com/cozmo/jsQR), Apache License 2.0 (see LICENSE). Unmodified dist/jsQR.js from the npm package.
+sha256 bc40c8a15196236b2314db0856f72ca0b49980cd5413b8c852a7349f5fee0859
+Used by the More Parties DC web app's door screen ("Scan a card", src/blackcard.js). It is loaded only when a door
+account opens the scanner, never on a normal page load. It reads QR codes from camera frames on the phone itself:
+no image leaves the phone.
