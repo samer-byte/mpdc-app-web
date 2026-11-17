@@ -9,11 +9,31 @@
  #start{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:18px;background:#000;color:#fff;z-index:9}
  #start img{width:70vw;max-width:420px}
  #start button{font:600 15px/1 -apple-system,Helvetica,Arial;letter-spacing:.14em;text-transform:uppercase;background:#e81a39;color:#fff;border:0;border-radius:999px;padding:16px 28px}
+ [hidden]{display:none!important}
+ #hint{bottom:calc(max(22px,env(safe-area-inset-bottom)) + 96px)}
+ #cam{position:fixed;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center;gap:30px;z-index:5}
+ #cam button{-webkit-tap-highlight-color:transparent;border:0;padding:0;background:none;width:68px;height:68px;border-radius:50%}
+ #shot{background:#fff!important;box-shadow:0 0 0 4px rgba(255,255,255,.35),0 2px 10px rgba(0,0,0,.5)}
+ #shot:disabled{opacity:.3}
+ #rec{box-shadow:inset 0 0 0 4px #fff,0 2px 10px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+ #rec span{display:block;width:46px;height:46px;border-radius:50%;background:#e81a39;transition:all .15s}
+ #rec.on span{width:26px;height:26px;border-radius:6px}
+ #clock{position:fixed;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#e81a39;color:#fff;font:600 14px/1 -apple-system,Helvetica,Arial,sans-serif;padding:7px 12px;border-radius:999px;z-index:5}
+ #tray{position:fixed;inset:0;background:#000;z-index:8;display:flex;flex-direction:column;align-items:center;gap:14px;box-sizing:border-box;padding:max(16px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom))}
+ #view{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+ #view img,#view video{max-width:100%;max-height:100%;border-radius:14px}
+ #acts{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+ #acts button,#acts a{font:600 14px/1 -apple-system,Helvetica,Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;border-radius:999px;padding:15px 22px;border:0;text-decoration:none;color:#fff;background:#1c1c1f}
+ #acts #share{background:#e81a39}
+ #tip{color:#9a9aa2;font-size:12px;line-height:1.4;text-align:center;margin:0;max-width:340px}
 </style>
 <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 </head><body>
 <div id="start"><img src="./targets/mpdc_logo_transparent_trim.png" alt="More Parties DC"><button id="go">Point at the logo</button></div>
 <div id="ar"></div><div id="hint">Point your camera at the More Parties DC logo</div>
+<div id="cam" hidden><button id="shot" type="button" aria-label="Take a photo"></button><button id="rec" type="button" aria-label="Record a video"><span></span></button></div>
+<div id="clock" hidden>0:00</div>
+<div id="tray" hidden><div id="view"></div><div id="acts"><button id="share" type="button">Share or save</button><a id="save">Save</a><button id="back" type="button">Back to camera</button></div><p id="tip"></p></div>
 <script type="module">
 import * as THREE from 'three';
 import { MindARThree } from './vendor/mindar-image-three.prod.js';
@@ -35,6 +55,107 @@ const TARGETS = [
 const MIND = Q.get('target') || './targets/mpdc_logo_5.mind';   // ?set=tattoo (the old second link) lands here too
 // star centres on the print, as fractions of the logo art box (measured from the logo file)
 const STAR_UV = [[0.488, -0.391], [0.718, -0.156], [0.946, -0.093]];
+
+
+// PHOTO AND VIDEO (Juice 2026-11-16: "Yes, add them", so people can post without screen recording).
+// A photo or a clip of exactly what this screen shows: the camera picture with the live logo over it, no browser bar.
+// Nothing is uploaded. The file is made on the phone and handed to the phone's own share sheet (save it, or post it).
+// Video has no sound: asking for the microphone on top of the camera can interrupt the camera on an iPhone.
+function setupCapture(mind, renderer) {
+  const el = id => document.getElementById(id);
+  const cam = el('cam'), shot = el('shot'), rec = el('rec'), clockEl = el('clock'), tray = el('tray'), view = el('view'),
+        share = el('share'), save = el('save'), back = el('back'), tip = el('tip'), box = el('ar');
+  const video = mind.video, layer = renderer.domElement;
+  const out = document.createElement('canvas'), g = out.getContext('2d');
+  const MAX_SECONDS = 30;
+  const MIME = ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm']
+    .find(m => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || null;
+  const canRecord = !!(MIME && out.captureStream);
+  let wantPhoto = false, recorder = null, chunks = [], startedAt = 0, timer = null, file = null, url = null;
+
+  // the screen's own shape, 1280 at most on the long side, even numbers for the video encoder
+  function size() {
+    const r = box.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 3);
+    const k = Math.min(1, 1280 / (Math.max(r.width, r.height) * dpr));
+    const w = Math.max(2, Math.round(r.width * dpr * k / 2) * 2), h = Math.max(2, Math.round(r.height * dpr * k / 2) * 2);
+    if (out.width !== w || out.height !== h) { out.width = w; out.height = h; }
+  }
+  // Camera picture first, cropped the way the screen crops it, then the logo layer over it. Called straight after the
+  // 3D frame is drawn, while that layer can still be read.
+  function compose() {
+    const r = box.getBoundingClientRect(), v = video.getBoundingClientRect(), c = layer.getBoundingClientRect();
+    if (!r.width || !v.width || !video.videoWidth) return false;
+    g.drawImage(video, (r.left - v.left) / v.width * video.videoWidth, (r.top - v.top) / v.height * video.videoHeight,
+      r.width / v.width * video.videoWidth, r.height / v.height * video.videoHeight, 0, 0, out.width, out.height);
+    g.drawImage(layer, (c.left - r.left) / r.width * out.width, (c.top - r.top) / r.height * out.height,
+      c.width / r.width * out.width, c.height / r.height * out.height);
+    return true;
+  }
+  function afterRender() {
+    if (!wantPhoto && !recorder) return;
+    if (!recorder) size();                       // the size stays put while a clip is being recorded
+    if (!compose()) return;
+    if (wantPhoto) {
+      wantPhoto = false;
+      out.toBlob(b => { if (b) show(new File([b], 'more-parties-dc.jpg', { type: 'image/jpeg' })); }, 'image/jpeg', 0.92);
+    }
+  }
+  function tick() {
+    const s = Math.floor((performance.now() - startedAt) / 1000);
+    clockEl.textContent = '0:' + String(s).padStart(2, '0');
+    if (s >= MAX_SECONDS) stopRec();
+  }
+  function startRec() {
+    size(); chunks = [];
+    const stream = out.captureStream(30);
+    let r;
+    try { r = new MediaRecorder(stream, { mimeType: MIME, videoBitsPerSecond: 6000000 }); }
+    catch (e) { stream.getTracks().forEach(t => t.stop()); rec.hidden = true; S.recError = String(e); return; }
+    r.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    r.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      recorder = null;
+      const type = MIME.split(';')[0], blob = new Blob(chunks, { type });
+      if (blob.size) show(new File([blob], 'more-parties-dc.' + (type === 'video/mp4' ? 'mp4' : 'webm'), { type }));
+    };
+    recorder = r; r.start();
+    startedAt = performance.now(); clockEl.textContent = '0:00'; clockEl.hidden = false;
+    rec.classList.add('on'); rec.setAttribute('aria-label', 'Stop recording'); shot.disabled = true;
+    timer = setInterval(tick, 200);
+  }
+  function stopRec() {
+    clearInterval(timer); clockEl.hidden = true;
+    rec.classList.remove('on'); rec.setAttribute('aria-label', 'Record a video'); shot.disabled = false;
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+  }
+  function show(f) {
+    file = f; url = URL.createObjectURL(f);
+    view.textContent = '';
+    let m;
+    if (f.type.indexOf('video') === 0) {
+      m = document.createElement('video'); m.muted = true; m.loop = true; m.autoplay = true; m.playsInline = true;
+      m.setAttribute('playsinline', ''); m.setAttribute('muted', ''); m.src = url;
+    } else { m = new Image(); m.alt = 'Your photo'; m.src = url; }
+    view.appendChild(m);
+    let sheet = false;
+    try { sheet = !!(navigator.canShare && navigator.canShare({ files: [f] })); } catch (e) { sheet = false; }
+    share.hidden = !sheet;
+    save.href = url; save.setAttribute('download', f.name); save.textContent = sheet ? 'Download' : 'Save';
+    tip.textContent = sheet
+      ? 'Share or save opens your phone’s share sheet. Save it to your photos, or send it straight to your story.'
+      : 'Save puts the file in your downloads.';
+    tray.hidden = false;
+    S.captures = (S.captures || 0) + 1; S.last = { type: f.type, bytes: f.size, w: out.width, h: out.height, sheet };
+  }
+  share.onclick = async () => { try { await navigator.share({ files: [file] }); } catch (e) { /* the sheet was closed */ } };
+  back.onclick = () => { tray.hidden = true; view.textContent = ''; if (url) URL.revokeObjectURL(url); url = null; file = null; };
+  shot.onclick = () => { if (!recorder) wantPhoto = true; };
+  rec.onclick = () => (recorder ? stopRec() : startRec());
+  if (!canRecord) rec.hidden = true;             // an older phone browser: photo only
+  cam.hidden = false;
+  S.canRecord = canRecord; S.mime = MIME; S.out = out;
+  return { afterRender };
+}
 
 async function start() {
   document.getElementById('start').remove();
@@ -113,8 +234,10 @@ async function start() {
   S.t0 = performance.now();
   try { await mind.start(); } catch (e) { hint.textContent = 'Camera is blocked. Allow camera access for this page, then reload.'; hint.style.opacity = 1; S.error = String(e); return; }
   S.started = 1;
-  addEventListener('pointerdown', () => { const t = clock.getElapsedTime(); for (const l of live) if (l.st.visible) l.spin(t); });
-  renderer.setAnimationLoop(() => { const t = clock.getElapsedTime(); S.frames++; if (live.some(l => l.st.visible)) S.framesTracked++; for (const l of live) l.frame(t); renderer.render(scene, camera); });
+  const capture = setupCapture(mind, renderer);
+  addEventListener('pointerdown', (e) => { if (e.target && e.target.closest && e.target.closest('#cam,#tray')) return;   // a tap on a button is not a tap on the logo
+    const t = clock.getElapsedTime(); for (const l of live) if (l.st.visible) l.spin(t); });
+  renderer.setAnimationLoop(() => { const t = clock.getElapsedTime(); S.frames++; if (live.some(l => l.st.visible)) S.framesTracked++; for (const l of live) l.frame(t); renderer.render(scene, camera); capture.afterRender(); });
 }
 document.getElementById('go').onclick = start;
 if (Q.has('autostart')) start();
