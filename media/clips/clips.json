@@ -1,0 +1,38 @@
+{
+ "v": 1,
+ "updated": "2026-11-17",
+ "series": {
+  "rosebar_fri": [
+   {
+    "id": "rosebar-tattoo",
+    "video": "https://app.morepartiesdc.com/media/clips/rosebar-tattoo.mp4"
+   },
+   {
+    "id": "rosebar-clockwork",
+    "video": "https://samer-byte.github.io/mpdc-media/v1/card-rosebar-fridays.mp4"
+   }
+  ],
+  "sax_sat": [
+   {
+    "id": "sax-bubble",
+    "video": "https://app.morepartiesdc.com/media/clips/sax-bubble.mp4"
+   },
+   {
+    "id": "sax-fire",
+    "video": "https://app.morepartiesdc.com/media/clips/sax-fire.mp4"
+   }
+  ],
+  "rosebar_sun": [
+   {
+    "id": "rosebar-sunday",
+    "video": "https://app.morepartiesdc.com/media/clips/rosebar-sunday.mp4"
+   }
+  ],
+  "mpdc": [
+   {
+    "id": "rosebar-tattoo",
+    "video": "https://app.morepartiesdc.com/media/clips/rosebar-tattoo.mp4"
+   }
+  ]
+ }
+}
