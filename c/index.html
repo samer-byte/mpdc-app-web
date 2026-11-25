@@ -15,10 +15,14 @@
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh}
 main{max-width:520px;margin:0 auto;padding:24px 16px 48px}
-.card{aspect-ratio:1.586;background:#000;border:1px solid var(--silver);border-radius:16px;padding:24px;display:flex;flex-direction:column;justify-content:space-between}
+.card{position:relative;overflow:hidden;aspect-ratio:1.586;border-radius:18px;padding:22px 24px;display:flex;flex-direction:column;justify-content:space-between;background:radial-gradient(120% 90% at 0% 0%,#2a2a2e 0%,#0d0d0f 45%,#000 100%);border:1px solid rgba(201,203,209,.55);box-shadow:0 18px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08)}
+.card:before{content:'';position:absolute;inset:-40% -60%;background:linear-gradient(115deg,transparent 42%,rgba(255,255,255,.16) 50%,transparent 58%);animation:sheen 5s ease-in-out infinite;pointer-events:none}
+@keyframes sheen{0%{transform:translateX(-30%)}55%,100%{transform:translateX(30%)}}
+@media (prefers-reduced-motion:reduce){.card:before{animation:none}}
+.card .row{display:flex;align-items:center;justify-content:space-between;position:relative}
 .card .top{color:var(--silver);font-size:11px;font-weight:700;letter-spacing:2px}
-.card .big{color:#fff;font-size:28px;font-weight:700}
-.card .small{color:var(--silver);font-size:12px;letter-spacing:2px;margin-top:6px}
+.card .big{color:#fff;font-size:28px;font-weight:700;position:relative}
+.card .small{color:var(--silver);font-size:12px;letter-spacing:2px;margin-top:6px;position:relative}
 h1{font-size:22px;line-height:1.25;margin:24px 0 8px}
 p{margin:8px 0;color:var(--dim)}
 .btn{display:block;text-align:center;background:var(--red);color:#fff;font-weight:700;font-size:16px;text-decoration:none;border-radius:8px;padding:15px 16px;margin-top:20px;min-height:52px}
@@ -31,8 +35,9 @@ a:focus-visible,.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 </head>
 <body>
 <main>
-<div class="card" role="img" aria-label="More Parties DC black card">
-<div class="top">MORE PARTIES DC</div>
+<div class="card" role="img" aria-label="More Parties DC VIP black card">
+<div class="row"><div class="top">MORE PARTIES DC</div>
+<svg width="22" height="30" viewBox="0 0 22 30" aria-hidden="true"><defs><radialGradient id="bl" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#E9EAEE"/><stop offset=".55" stop-color="#9A9CA3"/><stop offset="1" stop-color="#4A4B50"/></radialGradient></defs><ellipse cx="11" cy="11" rx="9.5" ry="10.5" fill="url(#bl)"/><path d="M9.6 21.2h2.8l-1.4 2z" fill="#7C7E85"/><path d="M11 23.2c-1.6 1.6 1.6 2.6 0 4.6" stroke="#7C7E85" stroke-width=".9" fill="none"/><ellipse cx="7.6" cy="6.8" rx="2.2" ry="3" fill="#fff" opacity=".35"/></svg></div>
 <div><div class="big">Black Card</div><div class="small">FREE ENTRY EVERY NIGHT</div></div>
 </div>
 <div id="ok" hidden>
@@ -40,6 +45,7 @@ a:focus-visible,.btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
 <p>Its holder gets in free on our nights. Show the card and your ID at the door. 21+.</p>
 <p class="small-note">Ticketed nights such as New Year's Eve may not be included.</p>
 <a class="btn" id="add" href="/">Add this card to my account</a>
+<a class="btn ghost" href="https://apps.apple.com/us/app/more-parties-dc/id6812600981">Download the app</a>
 <p class="small-note">You sign in, or make a free account, and the card then shows on your Profile. Only the person named on the card should add it. The card works at the door without an account too.</p>
 <p class="team">On the More Parties DC door team? <a id="door" href="/">Check this card</a></p>
 </div>
